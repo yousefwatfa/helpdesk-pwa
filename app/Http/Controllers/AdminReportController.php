@@ -102,7 +102,8 @@ class AdminReportController extends Controller
         $pdf = Pdf::loadView('admin.reports.pdf_template', [
             'tickets' => $tickets,
             'reportUser' => $selectedUser,
-            'filters' => $request->all(),
+            // the template reads these keys even when the form left them out
+            'filters' => $request->all() + array_fill_keys(['from_date', 'to_date', 'title', 'category'], null),
         ])->setPaper('a4', 'portrait');
 
         return $pdf->download('report-' . now()->format('Y-m-d') . '.pdf');
