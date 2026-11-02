@@ -29,3 +29,4 @@ Thumbs.db
 # uploaded logo and generated icons (per installation)
 /public/branding
 /public/branding-test
+/.env.railway
