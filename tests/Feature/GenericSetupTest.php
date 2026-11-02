@@ -205,6 +205,22 @@ class GenericSetupTest extends TestCase
         ])->assertForbidden();
     }
 
+    public function test_install_without_prompts_uses_config_and_keeps_saved_branding(): void
+    {
+        // a deploy without the password variable: no admin, no failure
+        $this->artisan('helpdesk:install', ['--no-interaction' => true])->assertSuccessful();
+        $this->assertSame(0, User::where('is_root', true)->count());
+
+        config(['helpdesk.admin' => ['username' => 'boss', 'name' => 'Boss', 'password' => 'from-env-123']]);
+        $this->artisan('helpdesk:install', ['--no-interaction' => true])->assertSuccessful();
+        $this->assertTrue(Hash::check('from-env-123', User::where('username', 'boss')->firstOrFail()->password));
+
+        // branding changed in Settings survives the next deploy
+        Setting::putMany(['brand.name' => 'Changed in Settings']);
+        $this->artisan('helpdesk:install', ['--no-interaction' => true])->assertSuccessful();
+        $this->assertSame('Changed in Settings', Setting::find('brand.name')->value);
+    }
+
     public function test_install_command_creates_the_first_root_admin_once(): void
     {
         $this->artisan('helpdesk:install', [

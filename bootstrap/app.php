@@ -15,6 +15,9 @@ return Application::configure(basePath: dirname(__DIR__))
         ['middleware' => ['web', 'auth']],
     )
     ->withMiddleware(function (Middleware $middleware): void {
+        // behind a TLS-terminating proxy (Railway, load balancers): build https URLs
+        $middleware->trustProxies(at: env('TRUSTED_PROXIES', '*'));
+
         $middleware->alias([
             'admin' => \App\Http\Middleware\IsAdmin::class,
             'viewer' => \App\Http\Middleware\IsViewer::class,

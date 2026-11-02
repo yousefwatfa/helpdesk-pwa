@@ -32,22 +32,43 @@ class InstallCommand extends Command
         $this->call('migrate', ['--force' => true]);
         $this->call('db:seed', ['--force' => true]);
 
-        $name = $this->option('name') ?: text('اسم النظام', default: config('helpdesk.brand.name'), required: true);
-        $organization = $this->option('organization') ?? text('اسم المؤسسة (اختياري)', default: config('helpdesk.brand.organization'));
+        $interactive = $this->input->isInteractive();
 
-        Setting::putMany(array_filter([
-            'brand.name' => $name,
-            'brand.organization' => $organization,
-        ], fn ($value) => $value !== null));
+        // Branding is saved on the first install only (or when passed explicitly),
+        // so re-running on every deploy never undoes changes made in Settings.
+        $firstInstall = !Setting::where('key', 'brand.name')->exists();
+        if ($firstInstall || $this->option('name') || $this->option('organization') !== null) {
+            $name = $this->option('name') ?: ($interactive
+                ? text('اسم النظام', default: config('helpdesk.brand.name'), required: true)
+                : config('helpdesk.brand.name'));
+            $organization = $this->option('organization') ?? ($interactive
+                ? text('اسم المؤسسة (اختياري)', default: config('helpdesk.brand.organization'))
+                : config('helpdesk.brand.organization'));
+
+            Setting::putMany(array_filter([
+                'brand.name' => $name,
+                'brand.organization' => $organization,
+            ], fn ($value) => $value !== null));
+        }
 
         if (User::where('is_root', true)->exists()) {
             $this->info('يوجد مدير نظام مسبقاً، لم يتم إنشاء حساب جديد.');
             return self::SUCCESS;
         }
 
-        $username = $this->option('admin-username') ?: text('اسم المستخدم لمدير النظام', default: 'admin', required: true);
-        $fullname = $this->option('admin-name') ?: text('الاسم الكامل لمدير النظام', default: 'مدير النظام', required: true);
-        $secret = $this->option('admin-password') ?: password('كلمة المرور (8 أحرف على الأقل)', required: true);
+        // without a terminal (deploy scripts) the values come from config/helpdesk.php (HELPDESK_ADMIN_*)
+        $admin = config('helpdesk.admin');
+        $username = $this->option('admin-username')
+            ?: ($interactive ? text('اسم المستخدم لمدير النظام', default: $admin['username'], required: true) : $admin['username']);
+        $fullname = $this->option('admin-name')
+            ?: ($interactive ? text('الاسم الكامل لمدير النظام', default: $admin['name'], required: true) : $admin['name']);
+        $secret = $this->option('admin-password') ?: $admin['password'];
+
+        if (!$secret && !$interactive) {
+            $this->warn('لم يُنشأ مدير النظام: ضع HELPDESK_ADMIN_PASSWORD (وHELPDESK_ADMIN_USERNAME) ثم أعد التشغيل.');
+            return self::SUCCESS;
+        }
+        $secret = $secret ?: password('كلمة المرور (8 أحرف على الأقل)', required: true);
 
         $validator = Validator::make(
             ['username' => $username, 'password' => $secret],

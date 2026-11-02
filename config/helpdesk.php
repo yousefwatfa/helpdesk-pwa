@@ -16,6 +16,25 @@ return [
     ],
 
     /*
+    | Folder under public/ for the uploaded logo and the icons made from it.
+    | On hosts with an ephemeral disk (Railway, containers) use "storage/branding":
+    | it lives in storage/app/public (served through the storage link), which
+    | can sit on a persistent volume together with ticket attachments.
+    */
+    'branding_directory' => env('HELPDESK_BRANDING_DIRECTORY', 'branding'),
+
+    /*
+    | First root admin for `php artisan helpdesk:install --no-interaction`
+    | (deploy scripts). Used only while no root admin exists; remove the
+    | password variable after the first deploy.
+    */
+    'admin' => [
+        'username' => env('HELPDESK_ADMIN_USERNAME', 'admin'),
+        'name' => env('HELPDESK_ADMIN_NAME', 'مدير النظام'),
+        'password' => env('HELPDESK_ADMIN_PASSWORD'),
+    ],
+
+    /*
     |--------------------------------------------------------------------------
     | LDAP / Active Directory sign-in (optional)
     |--------------------------------------------------------------------------

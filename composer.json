@@ -12,6 +12,10 @@
     "license": "MIT",
     "require": {
         "php": "^8.2",
+        "ext-gd": "*",
+        "ext-mbstring": "*",
+        "ext-pdo_mysql": "*",
+        "ext-zip": "*",
         "barryvdh/laravel-dompdf": "^3.1",
         "khaled.alshamaa/ar-php": "^7.0",
         "laravel-notification-channels/webpush": "^13.0",

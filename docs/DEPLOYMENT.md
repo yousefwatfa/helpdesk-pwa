@@ -1,5 +1,35 @@
 <div dir="rtl">
 
+# النشر على Railway (الأسهل)
+
+المستودع جاهز لـ Railway: `railway.json` يشغّل `php artisan helpdesk:install --no-interaction` قبل كل نشر، و Railpack يتعرف على Laravel ويبني الواجهة (`npm run build`) ويشغّل الـ migrations و `storage:link` تلقائياً.
+
+1. **مشروع جديد:** على railway.com ← New Project ← Deploy from GitHub repo ← `helpdesk-pwa`.
+2. **قاعدة البيانات:** داخل المشروع ← Create ← Database ← **MySQL**.
+3. **متغيرات خدمة التطبيق (Variables):**
+
+| المتغير | القيمة |
+|---|---|
+| `APP_KEY` | ناتج `php artisan key:generate --show` |
+| `APP_ENV` | `production` |
+| `APP_DEBUG` | `false` |
+| `APP_URL` | رابط الخدمة، مثل `https://helpdesk-production.up.railway.app` |
+| `DB_CONNECTION` | `mysql` |
+| `DB_URL` | `${{MySQL.MYSQL_URL}}` |
+| `LOG_CHANNEL` | `stderr` |
+| `HELPDESK_BRANDING_DIRECTORY` | `storage/branding` |
+| `HELPDESK_ADMIN_USERNAME` | اسم مستخدم مدير النظام |
+| `HELPDESK_ADMIN_PASSWORD` | كلمة مروره (8 أحرف على الأقل) — احذف هذا المتغير بعد أول نشر ناجح |
+| `VAPID_PUBLIC_KEY`, `VAPID_PRIVATE_KEY`, `VAPID_SUBJECT` | لإشعارات الهاتف (ناتج `php artisan webpush:vapid --show`) |
+| `APP_TIMEZONE` | اختياري، مثل `Asia/Gaza` |
+
+4. **قرص دائم للمرفقات والشعار:** على خدمة التطبيق ← Add Volume ← Mount path: `/app/storage/app`. (بدونه تُحذف المرفقات والشعار مع كل نشر.)
+5. **الرابط:** Settings ← Networking ← Generate Domain، ثم ضع الرابط في `APP_URL`.
+
+كل `git push` على `main` ينشر تلقائياً.
+
+---
+
 # النشر على خادم (Ubuntu)
 
 الخطوات لخادم Ubuntu 22.04/24.04 مع Nginx أو Apache وقاعدة MySQL/MariaDB. غيّر `helpdesk.example.com` لاسم النطاق الخاص بكم.
